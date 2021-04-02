@@ -24,56 +24,47 @@ function fecthToys() {
   .then((data)=> {
     console.log(data)
     const collection = document.querySelector("#toy-collection")
-    for (const toy of data){
-        const divTags = document.createElement("div")
-        divTags.classList.add("card");
-        divTags.innerHTML = `
-        <h2>${toy.name}</h2>
-        <img src=${toy.image} class= toy-avatar>
-        <p class="likes">${toy.likes} Likes</p>
-        `
-        const likeBtn = document.createElement('button')
-        likeBtn.classList.add("like-btn")
-        likeBtn.innerText = "Like"
-        collection.appendChild(divTags)
-        divTags.appendChild(likeBtn)
-        let a = `${toy.id}`;
-          let b = parseInt(toy.likes)
-        likeBtn.addEventListener("click",()=>{
-          let c = b++
-          fetch(toysURL+`/${a}`,{
-            method: "PATCH",
-            body:JSON.stringify({
-              likes: `${c}`
-            }),
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json"
-            }
-          })
-          .then(res => res.json())
-          .then(data => {
-            console.log(data.likes)
-            const pTags = document.getElementsByClassName("likes")
-            pTags.innerText= `${data.likes} Likes`
-            
-            }
-          )
-        })
-      }
+    data.forEach(toy => { 
+      renderToy(toy)    
+    })
+    attchClick()
   })
 }
 
- 
+function attchClick(){
+    const btn = document.querySelectorAll(".like-btn")
+    btn.forEach(item=>item.addEventListener("click",likeButton))
+}
 
 
+function likeButton(e) {  
+    console.log(e)  
+    let num = parseInt(e.target.parentElement.querySelector("p").innerText.split(" ")[0])
+    num +=1
+
+    fetch(toysURL+`/${e.target.id}`,{
+      method: "PATCH",
+      body: JSON.stringify({
+        likes: `${num}`
+      }),
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json"
+      }
+    })
+    .then(res => res.json())
+    .then(data=>{
+      console.log(data.likes)
+      e.target.parentElement.querySelector("p").innerText = `${num} Likes`
+    })
+}
 
 function addAToy(e){
   e.preventDefault()
-  let x = document.querySelectorAll(".input-text")
-  const toys = {
-    name: x[0].value,
-    image: x[1].value,
+  let inputs = document.querySelectorAll(".input-text")
+  const toy = {
+    name: inputs[0].value,
+    image: inputs[1].value,
     "likes": 0
   }
   fetch(toysURL, {
@@ -83,22 +74,26 @@ function addAToy(e){
       "Content-type": 'application/json',
       'Accept': 'application/json'
     },
-    body: JSON.stringify(toys)
+    body: JSON.stringify(toy)
   })
   .then(res => res.json())
   .then(data => {
     console.log(data)
-    x[0].value=""
-    x[1].value=""
-    const collection = document.querySelector("#toy-collection")
-    const divTags = document.createElement("div")
-    divTags.classList.add("card");
-    divTags.innerHTML = `
-   <h2>${data.name}</h2>
-   <img src=${data.image} class= toy-avatar>
-    <p>${data.likes} Likes</p>`
-    collection.appendChild(divTags)
-
+    inputs[0].value=""
+    inputs[1].value=""
+    
+    renderToy(data)
   })
 
+}
+
+function renderToy(toy) {
+  const collection = document.querySelector("#toy-collection")
+  collection.innerHTML += `
+      <div class="card">
+      <h2>${toy.name}</h2>
+      <img src= ${toy.image} class="toy-avatar" />
+      <p class=likes >${toy.likes} Likes</p>
+      <button class="like-btn" id=${toy.id}>Like <3</button>
+      </div>`  
 }
